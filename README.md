@@ -1,74 +1,64 @@
 # MAD_PROJECT
+1. Project Title:
+Smart Shuttle Tracker App for Real-Time Bus Location
 
-1. **Project Title:**
-   📱 Productivity App – All-in-One Notes, Tasks, and Weather Dashboard
+2. Your Name & Roll Number:
+Nanduri Sai Sundara Gourav – 2024-B-03072007
 
-2. **Your Name & Roll Number:**
-   Nanduri Sai Sundara Gourav – 2024-B-03072007
+3. Problem Statement:
+"Students and staff often face uncertainty about shuttle arrival times, leading to wasted time and overcrowding at stops. This project aims to provide real-time location tracking for campus shuttle services, helping users plan their commute more efficiently and reducing waiting times."
 
-3. **Problem Statement:**
-   "In today's fast-paced world, users often juggle multiple tools to manage tasks, take notes, check weather updates, and stay organized. Constantly switching between apps leads to inefficiency and distraction. This project aims to centralize essential productivity tools into a single, user-friendly mobile application."
+4. Proposed Solution / Idea:
+"A React Native mobile application that integrates GPS tracking to display live shuttle locations, estimated arrival times, and route information. Users can check nearby stops, receive notifications when a shuttle is approaching, and view shuttle schedules — all in one app."
 
-4. **Proposed Solution / Idea:**
-   "A cross-platform React Native mobile application that combines task management, note-taking, real-time weather updates, and user profile features. The app includes light/dark theme support, persistent storage, and customizable settings. It is designed to be simple, modular, and efficient for everyday productivity needs."
+5. Key Features:
 
-5. **Key Features:**
+Real-time GPS-based shuttle location tracking on an interactive map
 
-   - 📝 To-Do List with task creation, deletion, and completion tracking  
-   - 📒 Notes section with persistent storage (AsyncStorage)  
-   - 🌤️ Live Weather Dashboard using OpenWeather API  
-   - 👤 Login and Profile management (stored locally)  
-   - 🎨 Theme toggle (light/dark mode) using Context API  
-   - 🔒 Persistent login state using AsyncStorage  
-   - 🔀 Seamless navigation using React Navigation (Tab + Stack)  
-   - ♻️ Reusable UI components for cleaner, maintainable code  
+Estimated Time of Arrival (ETA) for each stop
 
-6. **Target Users / Audience:**
-   "Students, working professionals, and anyone who needs a lightweight but powerful productivity app to manage daily tasks, notes, and essential info like weather — all in one place."
+Live route and stop information for shuttles
 
-7. **Technology Stack:**
+Push notifications when a shuttle is near a selected stop
 
-   - **Frontend (Mobile App):** React Native, Expo  
-   - **State Management:** React Hooks (`useState`, `useEffect`, `useContext`)  
-   - **Navigation:** React Navigation  
-   - **API Integration:** OpenWeather API (for live weather updates)  
-   - **Local Storage:** AsyncStorage  
-   - **Global State:** Context API  
-   - **UI Components:** Custom reusable components (Buttons, Cards, Inputs)  
-   - **Styling:** React Native Stylesheets, Flexbox layout
+Search and filter shuttles based on routes or time
 
-8. **Expected Outcome:**
-   "A fully functional mobile application that helps users stay productive by consolidating essential tools into one intuitive interface. The app will offer smooth navigation, modern design, persistent data, and useful real-time features — ready to be used or extended in real-world scenarios."
+Offline access to shuttle schedules
 
-9. **Timeline:**
+6. Target Users / Audience:
+"College students, staff, and campus visitors using shuttle services."
 
-   - ✅ **Week 1:**  
-     - Project setup using Expo  
-     - Create navigation structure (Tab + Stack)  
-     - Build To-Do List screen with state and reusable components  
+7. Technology Stack:
 
-   - ✅ **Week 2:**  
-     - Integrate Weather API using `fetch` + `useEffect`  
-     - Build Notes screen with AsyncStorage persistence  
-     - Add reusable UI components for cards, inputs, buttons  
+Frontend (Mobile App): React Native, Expo
 
-   - ✅ **Week 3:**  
-     - Implement Login & Profile screen  
-     - Use Context API for authentication state  
-     - Persist login using AsyncStorage  
-     - Setup protected routes/screens  
+Backend: Node.js, Express.js
 
-   - ✅ **Week 4:**  
-     - Add Theme toggle using Context API  
-     - Polish UI and fix layout issues  
-     - Refactor and clean up codebase  
-     - Test on multiple devices  
-     - Finalize and prepare for deployment  
+Database: Firebase / MongoDB
 
-10. **Additional Notes:**
+Maps & Location Services: Google Maps API, GPS tracking SDK
 
-   - App is designed to run entirely offline (except Weather API)  
-   - Can be extended to include calendar sync, reminders, or cloud backup  
-   - Focus is on clean architecture, modular components, and scalability  
-   - All features developed using open-source technologies  
+Push Notifications: Firebase Cloud Messaging (FCM)
 
+8. Expected Outcome:
+"A fully functional mobile application that allows users to track campus shuttles in real time, view ETAs, and receive timely notifications, ensuring a more efficient and stress-free commute."
+
+9. Timeline:
+
+Week 1–2: Research, UI/UX design, and API selection
+
+Week 3–4: Backend setup, GPS integration, and database design
+
+Week 5–6: Frontend development with live tracking and ETA features
+
+Week 7: Push notification integration and testing
+
+Week 8: Deployment and feedback collection
+
+10. Additional Notes:
+
+Requires GPS-enabled devices on each shuttle for accurate tracking
+
+Google Maps API costs need to be considered for scaling
+
+Could be extended in the future to include ticket booking or seat availability
