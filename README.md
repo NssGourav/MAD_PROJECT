@@ -19,7 +19,7 @@ Estimated Time of Arrival (ETA) for each stop
 
 Live route and stop information for shuttles
 
-Push notifications when a shuttle is near a selected stop
+Push notifications when a shuttle is near a selected stoppp
 
 Search and filter shuttles based on routes or time
 
