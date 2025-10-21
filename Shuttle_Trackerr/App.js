@@ -1,15 +1,24 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, FlatList } from 'react-native';
-import { Provider as PaperProvider, Appbar, Button, Text, SegmentedButtons, Card, Chip } from 'react-native-paper';
+import { Provider as PaperProvider, Appbar, Button, Text, SegmentedButtons, Card, Chip, Menu, IconButton } from 'react-native-paper';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import SignInScreen from './screens/SignInScreen';
+import SignUpScreen from './screens/SignUpScreen';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
-export default function App() {
+const Stack = createNativeStackNavigator();
+
+function TrackerScreen({ navigation }) {
+  const { user, signOut } = useAuth();
+  const [menuVisible, setMenuVisible] = useState(false);
   const [shuttles, setShuttles] = useState([]);
   const [error, setError] = useState('');
-  const [mode, setMode] = useState('list'); 
-  const [screen, setScreen] = useState('landing'); //i have used this for the landing page.
+  const [mode, setMode] = useState('list');
+  const [screen, setScreen] = useState('landing');
   const [region, setRegion] = useState({
     latitude: 17.4462,
     longitude: 78.3497,
@@ -43,7 +52,7 @@ export default function App() {
     };
   }, []);
 
-//we ask the permission to the user to access the location.
+  //we ask the permission to the user to access the location.
   useEffect(() => {
     (async () => {
       try {
@@ -55,67 +64,155 @@ export default function App() {
           latitude: loc.coords.latitude,
           longitude: loc.coords.longitude,
         }));
-      } catch {}
+      } catch { }
     })();
   }, []);
 
+  const handleSignOut = async () => {
+    setMenuVisible(false);
+    await signOut();
+  };
+
+  return (
+    <View style={styles.container}>
+      {screen === 'landing' ? (
+        <View style={styles.landingWrap}>
+          <Text variant="headlineMedium" style={styles.brand}>Smart Shuttle Tracker</Text>
+          <Text variant="bodyMedium" style={styles.subtitle}>Real-time campus shuttle locations, ETAs, and routes</Text>
+          {user && (
+            <Text variant="bodyMedium" style={styles.welcomeText}>Welcome, {user.name}!</Text>
+          )}
+          <Button mode="contained" onPress={() => setScreen('tracker')}>Open Tracker</Button>
+        </View>
+      ) : (
+        <>
+          <Appbar.Header>
+            <Appbar.Content title="Smart Shuttle Tracker" />
+            <Menu
+              visible={menuVisible}
+              onDismiss={() => setMenuVisible(false)}
+              anchor={
+                <IconButton
+                  icon="account-circle"
+                  size={24}
+                  onPress={() => setMenuVisible(true)}
+                />
+              }
+            >
+              <Menu.Item
+                leadingIcon="account"
+                title={user?.name || 'User'}
+                disabled
+              />
+              <Menu.Item
+                leadingIcon="email"
+                title={user?.email || ''}
+                disabled
+              />
+              <Menu.Item
+                leadingIcon="logout"
+                onPress={handleSignOut}
+                title="Sign Out"
+              />
+            </Menu>
+          </Appbar.Header>
+          <View style={styles.controlsRow}>
+            <SegmentedButtons
+              value={mode}
+              onValueChange={setMode}
+              buttons={[
+                { value: 'list', label: 'List' },
+                { value: 'map', label: 'Map' },
+              ]}
+            />
+            {error ? <Chip mode="flat" selected color="red">{`Error: ${error}`}</Chip> : null}
+          </View>
+          {mode === 'list' ? (
+            <FlatList
+              data={shuttles}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <Card style={styles.card}>
+                  <Card.Title title={item.name} subtitle={`Route: ${item.routeId}`} />
+                  <Card.Content>
+                    <Text>Lat: {item.latitude?.toFixed(5)} Lng: {item.longitude?.toFixed(5)}</Text>
+                    <Text>Speed: {item.speedKph} km/h</Text>
+                  </Card.Content>
+                </Card>
+              )}
+              ListEmptyComponent={<Text>No shuttles yet</Text>}
+              contentContainerStyle={styles.list}
+            />
+          ) : (
+            <MapView style={styles.map} initialRegion={region} onRegionChangeComplete={setRegion}>
+              {shuttles.map((s) => (
+                <Marker
+                  key={s.id}
+                  coordinate={{ latitude: s.latitude, longitude: s.longitude }}
+                  title={s.name}
+                  description={`Route: ${s.routeId} | ${s.speedKph} km/h`}
+                />
+              ))}
+            </MapView>
+          )}
+        </>
+      )}
+      <StatusBar style="auto" />
+    </View>
+  );
+}
+
+function AuthNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="SignIn">
+        {(props) => {
+          const { signIn } = useAuth();
+          return <SignInScreen {...props} onSignIn={signIn} />;
+        }}
+      </Stack.Screen>
+      <Stack.Screen name="SignUp">
+        {(props) => {
+          const { signUp } = useAuth();
+          return <SignUpScreen {...props} onSignUp={signUp} />;
+        }}
+      </Stack.Screen>
+    </Stack.Navigator>
+  );
+}
+
+function MainNavigator() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Tracker" component={TrackerScreen} />
+    </Stack.Navigator>
+  );
+}
+
+function AppContent() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      {user ? <MainNavigator /> : <AuthNavigator />}
+    </NavigationContainer>
+  );
+}
+
+export default function App() {
   return (
     <PaperProvider>
-      <View style={styles.container}>
-        {screen === 'landing' ? (
-          <View style={styles.landingWrap}>
-            <Text variant="headlineMedium" style={styles.brand}>Smart Shuttle Tracker</Text>
-            <Text variant="bodyMedium" style={styles.subtitle}>Real-time campus shuttle locations, ETAs, and routes</Text>
-            <Button mode="contained" onPress={() => setScreen('tracker')}>Open Tracker</Button>
-          </View>
-        ) : (
-          <>
-            <Appbar.Header>
-              <Appbar.Content title="Smart Shuttle Tracker" />
-            </Appbar.Header>
-            <View style={styles.controlsRow}>
-              <SegmentedButtons
-                value={mode}
-                onValueChange={setMode}
-                buttons={[
-                  { value: 'list', label: 'List' },
-                  { value: 'map', label: 'Map' },
-                ]}
-              />
-              {error ? <Chip mode="flat" selected color="red">{`Error: ${error}`}</Chip> : null}
-            </View>
-            {mode === 'list' ? (
-              <FlatList
-                data={shuttles}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <Card style={styles.card}>
-                    <Card.Title title={item.name} subtitle={`Route: ${item.routeId}`} />
-                    <Card.Content>
-                      <Text>Lat: {item.latitude?.toFixed(5)} Lng: {item.longitude?.toFixed(5)}</Text>
-                      <Text>Speed: {item.speedKph} km/h</Text>
-                    </Card.Content>
-                  </Card>
-                )}
-                ListEmptyComponent={<Text>No shuttles yet</Text>}
-                contentContainerStyle={styles.list}
-              />
-            ) : (
-              <MapView style={styles.map} initialRegion={region} onRegionChangeComplete={setRegion}>
-                {shuttles.map((s) => (
-                  <Marker
-                    key={s.id}
-                    coordinate={{ latitude: s.latitude, longitude: s.longitude }}
-                    title={s.name}
-                    description={`Route: ${s.routeId} | ${s.speedKph} km/h`}
-                  />
-                ))}
-              </MapView>
-            )}
-          </>
-        )}
-        <StatusBar style="auto" />
-      </View>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </PaperProvider>
   );
 }
@@ -216,5 +313,16 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
     borderRadius: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  welcomeText: {
+    marginTop: 16,
+    marginBottom: 8,
+    fontWeight: '600',
   },
 });
