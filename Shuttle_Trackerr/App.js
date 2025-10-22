@@ -18,7 +18,7 @@ function TrackerScreen({ navigation }) {
   const [shuttles, setShuttles] = useState([]);
   const [error, setError] = useState('');
   const [mode, setMode] = useState('list');
-  const [screen, setScreen] = useState('landing');
+  const [screen, setScreen] = useState('landing'); //i have used this for the landing page.
   const [region, setRegion] = useState({
     latitude: 17.4462,
     longitude: 78.3497,
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   item: {
     padding: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#d70808ff',
     borderRadius: 8,
     backgroundColor: '#fafafa',
   },
