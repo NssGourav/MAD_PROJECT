@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 export default function App() {
   const [shuttles, setShuttles] = useState([]);
   const [error, setError] = useState('');
-  const [mode, setMode] = useState('list'); 
+  const [mode, setMode] = useState('list');
   const [screen, setScreen] = useState('landing'); //i have used this for the landing page.
   const [region, setRegion] = useState({
     latitude: 17.4462,
@@ -43,7 +43,7 @@ export default function App() {
     };
   }, []);
 
-//we ask the permission to the user to access the location.
+  //we ask the permission to the user to access the location.
   useEffect(() => {
     (async () => {
       try {
@@ -55,7 +55,7 @@ export default function App() {
           latitude: loc.coords.latitude,
           longitude: loc.coords.longitude,
         }));
-      } catch {}
+      } catch { }
     })();
   }, []);
 
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   item: {
     padding: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#d70808ff',
     borderRadius: 8,
     backgroundColor: '#fafafa',
   },
