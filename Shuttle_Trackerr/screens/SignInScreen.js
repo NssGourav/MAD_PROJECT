@@ -106,6 +106,7 @@ export default function SignInScreen({ navigation, onSignIn }) {
               disabled={loading}
               style={styles.button}
               contentStyle={styles.buttonContent}
+
             >
               Sign In
             </Button>
