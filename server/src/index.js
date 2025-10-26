@@ -6,8 +6,6 @@ const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
-
-// In-memory mock data
 const routes = [
   {
     id: 'route-1',
@@ -31,8 +29,6 @@ const shuttles = [
     speedKph: 18
   }
 ];
-
-// Simple simulator: moves shuttle slightly every 2 seconds
 setInterval(() => {
   for (const shuttle of shuttles) {
     const deltaLat = (Math.random() - 0.5) * 0.0003;
@@ -47,7 +43,6 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Root information page
 app.get('/', (_req, res) => {
   res.type('html').send(`
     <h1>Smart Shuttle Tracker API</h1>
