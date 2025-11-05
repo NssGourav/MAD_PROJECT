@@ -56,7 +56,6 @@ Week 7: Push notification integration and testing
 Week 8: Deployment and feedback collection
 
 10. Additional Notes:
-
 Requires GPS-enabled devices on each shuttle for accurate tracking
 
 Google Maps API costs need to be considered for scaling

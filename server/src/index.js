@@ -6,7 +6,6 @@ const port = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
-
 // In-memory user storage (in production, use a real database)
 const users = [];
 const routes = [
@@ -32,7 +31,6 @@ const shuttles = [
     speedKph: 18
   }
 ];
-
 setInterval(() => {
   for (const shuttle of shuttles) {
     const deltaLat = (Math.random() - 0.5) * 0.0003;
