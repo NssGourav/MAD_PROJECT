@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { TextInput, Button, Text, Snackbar, HelperText } from 'react-native-paper';
+import { TextInput, Button, Text, Snackbar } from 'react-native-paper';
+import { useTheme } from '../context/ThemeContext';
+import { spacing, borderRadius } from '../design/spacing';
+import { typography } from '../design/typography';
 
 export default function SignInScreen({ navigation, onSignIn }) {
+  const { colors } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,7 +22,6 @@ export default function SignInScreen({ navigation, onSignIn }) {
   const handleSignIn = async () => {
     setError('');
 
-    // Validation
     if (!email || !password) {
       setError('Please fill in all fields');
       setSnackbarVisible(true);
@@ -48,7 +51,6 @@ export default function SignInScreen({ navigation, onSignIn }) {
         throw new Error(data.message || 'Sign in failed');
       }
 
-      // Success - call the onSignIn callback with user data
       onSignIn(data.user);
     } catch (err) {
       setError(err.message || 'Failed to sign in');
@@ -61,14 +63,24 @@ export default function SignInScreen({ navigation, onSignIn }) {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.content}>
-          <Text variant="headlineLarge" style={styles.title}>
+          <View style={styles.logoContainer}>
+            <View style={[styles.logoCircle, { backgroundColor: colors.primary }]}>
+              <Text style={styles.logoText}>ST</Text>
+            </View>
+          </View>
+          
+          <Text style={[styles.title, { color: colors.text }]}>
             Welcome Back
           </Text>
-          <Text variant="bodyMedium" style={styles.subtitle}>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Sign in to track your shuttle
           </Text>
 
@@ -83,6 +95,11 @@ export default function SignInScreen({ navigation, onSignIn }) {
               autoComplete="email"
               disabled={loading}
               style={styles.input}
+              contentStyle={styles.inputContent}
+              left={<TextInput.Icon icon="email-outline" iconColor={colors.textSecondary} />}
+              outlineColor={colors.border}
+              activeOutlineColor={colors.primary}
+              theme={{ colors: { onSurface: colors.text } }}
             />
 
             <TextInput
@@ -95,12 +112,18 @@ export default function SignInScreen({ navigation, onSignIn }) {
               autoComplete="password"
               disabled={loading}
               style={styles.input}
+              contentStyle={styles.inputContent}
+              left={<TextInput.Icon icon="lock-outline" iconColor={colors.textSecondary} />}
               right={
                 <TextInput.Icon
                   icon={showPassword ? 'eye-off' : 'eye'}
+                  iconColor={colors.textSecondary}
                   onPress={() => setShowPassword(!showPassword)}
                 />
               }
+              outlineColor={colors.border}
+              activeOutlineColor={colors.primary}
+              theme={{ colors: { onSurface: colors.text } }}
             />
 
             <Button
@@ -108,19 +131,23 @@ export default function SignInScreen({ navigation, onSignIn }) {
               onPress={handleSignIn}
               loading={loading}
               disabled={loading}
-              style={styles.button}
+              style={[styles.button, { backgroundColor: colors.primary }]}
               contentStyle={styles.buttonContent}
+              labelStyle={styles.buttonLabel}
             >
               Sign In
             </Button>
 
             <View style={styles.signupPrompt}>
-              <Text variant="bodyMedium">Don't have an account? </Text>
+              <Text style={[styles.signupText, { color: colors.textSecondary }]}>
+                Don't have an account?{' '}
+              </Text>
               <Button
                 mode="text"
                 onPress={() => navigation.navigate('SignUp')}
                 disabled={loading}
                 compact
+                labelStyle={[styles.linkText, { color: colors.primary }]}
               >
                 Sign Up
               </Button>
@@ -133,9 +160,11 @@ export default function SignInScreen({ navigation, onSignIn }) {
         visible={snackbarVisible}
         onDismiss={() => setSnackbarVisible(false)}
         duration={3000}
+        style={[styles.snackbar, { backgroundColor: colors.error }]}
         action={{
           label: 'Dismiss',
           onPress: () => setSnackbarVisible(false),
+          textColor: '#fff',
         }}
       >
         {error}
@@ -147,41 +176,75 @@ export default function SignInScreen({ navigation, onSignIn }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
   },
   content: {
-    padding: 24,
+    padding: spacing.lg,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: borderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoText: {
+    ...typography.styles.h3,
+    fontWeight: typography.fontWeight.bold,
+    color: '#fff',
   },
   title: {
-    fontWeight: '700',
-    marginBottom: 8,
+    ...typography.styles.h2,
+    fontWeight: typography.fontWeight.bold,
+    marginBottom: spacing.sm,
     textAlign: 'center',
   },
   subtitle: {
+    ...typography.styles.body,
     textAlign: 'center',
-    color: '#666',
-    marginBottom: 32,
+    marginBottom: spacing.xl,
   },
   form: {
-    gap: 12,
+    gap: spacing.md,
   },
   input: {
-    marginBottom: 8,
+    backgroundColor: 'transparent',
+  },
+  inputContent: {
+    ...typography.styles.body,
   },
   button: {
-    marginTop: 16,
+    marginTop: spacing.md,
+    borderRadius: borderRadius.lg,
   },
   buttonContent: {
-    paddingVertical: 8,
+    paddingVertical: spacing.sm,
+  },
+  buttonLabel: {
+    ...typography.styles.button,
+    color: '#fff',
   },
   signupPrompt: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: spacing.lg,
+  },
+  signupText: {
+    ...typography.styles.body,
+  },
+  linkText: {
+    ...typography.styles.body,
+    fontWeight: typography.fontWeight.semibold,
+  },
+  snackbar: {
+    borderRadius: borderRadius.md,
   },
 });
