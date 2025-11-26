@@ -4,6 +4,7 @@ import { TextInput, Button, Text, Snackbar } from 'react-native-paper';
 import { useTheme } from '../context/ThemeContext';
 import { spacing, borderRadius } from '../design/spacing';
 import { typography } from '../design/typography';
+import { getApiUrl, API_CONFIG } from '../config/api';
 
 export default function SignInScreen({ navigation, onSignIn }) {
   const { colors } = useTheme();
@@ -37,23 +38,66 @@ export default function SignInScreen({ navigation, onSignIn }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:4000/api/auth/signin', {
+      const apiUrl = getApiUrl(API_CONFIG.ENDPOINTS.LOGIN);
+      console.log('📤 Login request to:', apiUrl);
+      
+      // Create AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
 
-      const data = await response.json();
+      console.log('📥 Response status:', response.status);
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Sign in failed');
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error('JSON parse error:', jsonError);
+        throw new Error('Invalid response from server');
       }
 
+      if (!response.ok) {
+        throw new Error(data.message || data.error || `Sign in failed (${response.status})`);
+      }
+
+      // Store token if provided
+      if (data.token) {
+        // You can store the token in AsyncStorage here if needed
+        console.log('✅ Token received');
+      }
+
+      console.log('✅ Login successful');
       onSignIn(data.user);
     } catch (err) {
-      setError(err.message || 'Failed to sign in');
+      // Better error handling for network issues
+      const errorMessage = err?.message || err?.toString() || 'Unknown error';
+      console.error('❌ Login error:', errorMessage);
+      console.error('Full error object:', err);
+
+      if (err?.name === 'AbortError') {
+        setError('Request timeout: Server took too long to respond. Check if server is running and accessible.');
+      } else if (
+        errorMessage === 'Network request failed' || 
+        errorMessage.includes('Network') ||
+        errorMessage.includes('fetch') ||
+        errorMessage.includes('Failed to connect') ||
+        errorMessage.includes('ECONNREFUSED') ||
+        err?.name === 'TypeError'
+      ) {
+        setError(`Cannot connect to server at ${getApiUrl(API_CONFIG.ENDPOINTS.LOGIN)}. Make sure: 1) Server is running, 2) Phone and computer are on same Wi-Fi, 3) IP address is correct (${API_CONFIG.BASE_URL})`);
+      } else {
+        setError(errorMessage || 'Failed to sign in. Please try again.');
+      }
       setSnackbarVisible(true);
     } finally {
       setLoading(false);
