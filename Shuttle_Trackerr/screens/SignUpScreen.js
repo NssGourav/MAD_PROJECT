@@ -4,9 +4,11 @@ import { TextInput, Button, Text, Snackbar, HelperText } from 'react-native-pape
 import { useTheme } from '../context/ThemeContext';
 import { spacing, borderRadius } from '../design/spacing';
 import { typography } from '../design/typography';
+import { getApiUrl, API_CONFIG } from '../config/api';
 
-export default function SignUpScreen({ navigation, onSignUp }) {
+export default function SignUpScreen({ navigation, route, onSignUp }) {
   const { colors } = useTheme();
+  const { role } = route.params || { role: 'student' }; // Default to student
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,12 +58,15 @@ export default function SignUpScreen({ navigation, onSignUp }) {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:4000/api/auth/signup', {
+      const apiUrl = getApiUrl(API_CONFIG.ENDPOINTS.SIGNUP);
+      console.log('📤 Signup request to:', apiUrl);
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, role }), // Include role
       });
 
       const data = await response.json();
@@ -70,7 +75,7 @@ export default function SignUpScreen({ navigation, onSignUp }) {
         throw new Error(data.message || 'Sign up failed');
       }
 
-      onSignUp(data.user);
+      onSignUp({ ...data.user, token: data.token, role }); // Ensure role and token are passed
     } catch (err) {
       setError(err.message || 'Failed to sign up');
       setSnackbarVisible(true);
@@ -80,11 +85,11 @@ export default function SignUpScreen({ navigation, onSignUp }) {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -95,12 +100,12 @@ export default function SignUpScreen({ navigation, onSignUp }) {
               <Text style={styles.logoText}>ST</Text>
             </View>
           </View>
-          
+
           <Text style={[styles.title, { color: colors.text }]}>
-            Create Account
+            {role === 'driver' ? 'Driver Sign Up' : 'Student Sign Up'}
           </Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Join us to track your campus shuttle
+            {role === 'driver' ? 'Create an account to manage routes' : 'Create an account to track shuttles'}
           </Text>
 
           <View style={styles.form}>
@@ -150,8 +155,8 @@ export default function SignUpScreen({ navigation, onSignUp }) {
               contentStyle={styles.inputContent}
               left={<TextInput.Icon icon="lock-outline" iconColor={colors.textSecondary} />}
               right={
-                <TextInput.Icon 
-                  icon={showPassword ? 'eye-off' : 'eye'} 
+                <TextInput.Icon
+                  icon={showPassword ? 'eye-off' : 'eye'}
                   iconColor={colors.textSecondary}
                   onPress={() => setShowPassword(!showPassword)}
                 />
@@ -177,8 +182,8 @@ export default function SignUpScreen({ navigation, onSignUp }) {
               contentStyle={styles.inputContent}
               left={<TextInput.Icon icon="lock-check-outline" iconColor={colors.textSecondary} />}
               right={
-                <TextInput.Icon 
-                  icon={showConfirmPassword ? 'eye-off' : 'eye'} 
+                <TextInput.Icon
+                  icon={showConfirmPassword ? 'eye-off' : 'eye'}
                   iconColor={colors.textSecondary}
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                 />
@@ -206,7 +211,7 @@ export default function SignUpScreen({ navigation, onSignUp }) {
               </Text>
               <Button
                 mode="text"
-                onPress={() => navigation.navigate('SignIn')}
+                onPress={() => navigation.navigate('SignIn', { role })}
                 disabled={loading}
                 compact
                 labelStyle={[styles.linkText, { color: colors.primary }]}
