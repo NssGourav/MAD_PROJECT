@@ -6,8 +6,9 @@ import { spacing, borderRadius } from '../design/spacing';
 import { typography } from '../design/typography';
 import { getApiUrl, API_CONFIG } from '../config/api';
 
-export default function SignInScreen({ navigation, onSignIn }) {
+export default function SignInScreen({ navigation, route, onSignIn }) {
   const { colors } = useTheme();
+  const { role } = route.params || { role: 'student' }; // Default to student if not provided
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -40,20 +41,20 @@ export default function SignInScreen({ navigation, onSignIn }) {
     try {
       const apiUrl = getApiUrl(API_CONFIG.ENDPOINTS.LOGIN);
       console.log('📤 Login request to:', apiUrl);
-      
+
       // Create AbortController for timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-      
+
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, role }), // Send role to backend if needed
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
 
       console.log('📥 Response status:', response.status);
@@ -77,7 +78,7 @@ export default function SignInScreen({ navigation, onSignIn }) {
       }
 
       console.log('✅ Login successful');
-      onSignIn(data.user);
+      onSignIn({ ...data.user, token: data.token, role }); // Ensure role and token are passed to auth context
     } catch (err) {
       // Better error handling for network issues
       const errorMessage = err?.message || err?.toString() || 'Unknown error';
@@ -87,7 +88,7 @@ export default function SignInScreen({ navigation, onSignIn }) {
       if (err?.name === 'AbortError') {
         setError('Request timeout: Server took too long to respond. Check if server is running and accessible.');
       } else if (
-        errorMessage === 'Network request failed' || 
+        errorMessage === 'Network request failed' ||
         errorMessage.includes('Network') ||
         errorMessage.includes('fetch') ||
         errorMessage.includes('Failed to connect') ||
@@ -109,7 +110,7 @@ export default function SignInScreen({ navigation, onSignIn }) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: colors.background }]}
     >
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
@@ -120,12 +121,12 @@ export default function SignInScreen({ navigation, onSignIn }) {
               <Text style={styles.logoText}>ST</Text>
             </View>
           </View>
-          
+
           <Text style={[styles.title, { color: colors.text }]}>
-            Welcome Back
+            {role === 'driver' ? 'Driver Login' : 'Student Login'}
           </Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            Sign in to track your shuttle
+            Sign in to {role === 'driver' ? 'manage your route' : 'track your shuttle'}
           </Text>
 
           <View style={styles.form}>
@@ -188,7 +189,7 @@ export default function SignInScreen({ navigation, onSignIn }) {
               </Text>
               <Button
                 mode="text"
-                onPress={() => navigation.navigate('SignUp')}
+                onPress={() => navigation.navigate('SignUp', { role })}
                 disabled={loading}
                 compact
                 labelStyle={[styles.linkText, { color: colors.primary }]}
