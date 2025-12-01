@@ -17,5 +17,12 @@ router.post('/signup', signup);
  */
 router.post('/login', login);
 
+/**
+ * @route   POST /api/auth/signin
+ * @desc    Login user (alias for /login)
+ * @access  Public
+ */
+router.post('/signin', login);
+
 export default router;
 
