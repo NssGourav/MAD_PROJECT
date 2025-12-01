@@ -11,6 +11,9 @@ import HomeScreen from './screens/HomeScreen';
 import RoutesScreen from './screens/RoutesScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import DriverDashboardScreen from './screens/DriverDashboardScreen';
+import StudentDashboardScreen from './screens/StudentDashboardScreen';
+import RoleSelectionScreen from './screens/RoleSelectionScreen';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { spacing, borderRadius } from './design/spacing';
@@ -22,7 +25,7 @@ const Tab = createBottomTabNavigator();
 
 function TabNavigator() {
   const { colors } = useTheme();
-  
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -62,23 +65,23 @@ function TabNavigator() {
         },
       })}
     >
-      <Tab.Screen 
-        name="Home" 
+      <Tab.Screen
+        name="Home"
         component={HomeScreen}
         options={{ title: 'Tracker' }}
       />
-      <Tab.Screen 
-        name="Routes" 
+      <Tab.Screen
+        name="Routes"
         component={RoutesScreen}
         options={{ title: 'Routes' }}
       />
-      <Tab.Screen 
-        name="Profile" 
+      <Tab.Screen
+        name="Profile"
         component={ProfileScreen}
         options={{ title: 'Profile' }}
       />
-      <Tab.Screen 
-        name="Settings" 
+      <Tab.Screen
+        name="Settings"
         component={SettingsScreen}
         options={{ title: 'Settings' }}
       />
@@ -88,7 +91,8 @@ function TabNavigator() {
 
 function AuthNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="RoleSelection">
+      <Stack.Screen name="RoleSelection" component={RoleSelectionScreen} />
       <Stack.Screen name="SignIn">
         {(props) => {
           const { signIn } = useAuth();
@@ -106,11 +110,29 @@ function AuthNavigator() {
 }
 
 function MainNavigator() {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="MainTabs" component={TabNavigator} />
-    </Stack.Navigator>
-  );
+  const { user } = useAuth();
+
+  // Route based on user role
+  if (user?.role === 'driver') {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="DriverDashboard" component={DriverDashboardScreen} />
+      </Stack.Navigator>
+    );
+  } else if (user?.role === 'student') {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="StudentDashboard" component={StudentDashboardScreen} />
+      </Stack.Navigator>
+    );
+  } else {
+    // Fallback to tab navigator for users without role
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="MainTabs" component={TabNavigator} />
+      </Stack.Navigator>
+    );
+  }
 }
 
 function AppContent() {
