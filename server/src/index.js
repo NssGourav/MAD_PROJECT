@@ -1,13 +1,19 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
+import connectDB from './config/database.js';
+import locationRoutes from './routes/locationRoutes.js';
+import authRoutes from './routes/auth.js';
+import User from './models/User.js';
+
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 4000;
+connectDB();
 
 app.use(cors());
 app.use(express.json());
-// In-memory user storage (in production, use a real database)
-const users = [];
 const routes = [
   {
     id: 'route-1',
@@ -48,13 +54,24 @@ app.get('/health', (_req, res) => {
 app.get('/', (_req, res) => {
   res.type('html').send(`
     <h1>Smart Shuttle Tracker API</h1>
+    <h2>Authentication</h2>
     <ul>
-      <li><a href="/health">/health</a></li>
+      <li>POST /api/auth/signup - Create new user (driver/student)</li>
+      <li>POST /api/auth/signin - Sign in user</li>
+      <li><a href="/api/users">/api/users</a> - Get all users</li>
+    </ul>
+    <h2>Location Tracking</h2>
+    <ul>
+      <li>POST /api/driver/update-location - Update driver location</li>
+      <li>GET /api/student/driver-location/:driverId - Get driver location</li>
+      <li><a href="/api/drivers">/api/drivers</a> - Get all drivers</li>
+      <li>POST /api/student/assign-driver - Assign driver to student</li>
+    </ul>
+    <h2>Legacy Routes</h2>
+    <ul>
       <li><a href="/api/routes">/api/routes</a></li>
       <li><a href="/api/shuttles">/api/shuttles</a></li>
-      <li><a href="/api/users">/api/users</a></li>
-      <li>POST /api/auth/signup</li>
-      <li>POST /api/auth/signin</li>
+      <li><a href="/health">/health</a></li>
     </ul>
   `);
 });
@@ -66,68 +83,25 @@ app.get('/api/routes', (_req, res) => {
 app.get('/api/shuttles', (_req, res) => {
   res.json({ shuttles });
 });
-
-app.post('/api/auth/signup', (req, res) => {
-  const { name, email, password } = req.body;
-
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: 'All fields are required' });
+app.get('/api/users', async (_req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    res.json({ users });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({
+      message: 'Server error while fetching users',
+      error: error.message
+    });
   }
-
-  const existingUser = users.find(u => u.email === email);
-  if (existingUser) {
-    return res.status(400).json({ message: 'User already exists with this email' });
-  }
-
-  // Create new user
-  const newUser = {
-    id: `user-${Date.now()}`,
-    name,
-    email,
-    password, // In production, hash the password!
-    createdAt: new Date().toISOString()
-  };
-
-  users.push(newUser);
-
-  const { password: _, ...userWithoutPassword } = newUser;
-  res.status(201).json({
-    message: 'User created successfully',
-    user: userWithoutPassword
-  });
 });
 
-app.post('/api/auth/signin', (req, res) => {
-  const { email, password } = req.body;
-
-  // Validation
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required' });
-  }
-
-  const user = users.find(u => u.email === email);
-  if (!user) {
-    return res.status(401).json({ message: 'Invalid email or password' });
-  }
-
-  if (user.password !== password) {
-    return res.status(401).json({ message: 'Invalid email or password' });
-  }
-
-  const { password: _, ...userWithoutPassword } = user;
-  res.json({
-    message: 'Sign in successful',
-    user: userWithoutPassword
-  });
-});
-
-app.get('/api/users', (_req, res) => {
-  const usersWithoutPasswords = users.map(({ password, ...user }) => user);
-  res.json({ users: usersWithoutPasswords });
-});
+app.use('/api/auth', authRoutes);
+app.use('/api', locationRoutes);
 
 app.listen(port, () => {
-  console.log(`Server listening on http://localhost:${port}`);
+  console.log(`🚀 Server listening on http://localhost:${port}`);
 });
+
 
 
